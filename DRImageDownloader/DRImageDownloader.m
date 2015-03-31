@@ -5,7 +5,7 @@
 
 #import "DRImageDownloader.h"
 
-static NSUInteger const DefaultMemoryCacheSize = 10 * 1024 * 1024;
+NSUInteger const DRImageDownloaderDefaultMemoryCacheSize = 10 * 1024 * 1024;
 
 @interface DRImageDownloader ()
 
@@ -25,6 +25,15 @@ static NSUInteger const DefaultMemoryCacheSize = 10 * 1024 * 1024;
     return sharedInstance;
 }
 
+- (instancetype)init
+{
+    self = [super init];
+    if (self) {
+        _useSharedCache = YES;
+    }
+    return self;
+}
+
 - (NSUInteger)memoryCacheSize
 {
     return self.cache.totalCostLimit;
@@ -35,7 +44,9 @@ static NSUInteger const DefaultMemoryCacheSize = 10 * 1024 * 1024;
     self.cache.totalCostLimit = memoryCacheSize;
 }
 
-- (void)downloadImageWithUrl:(NSURL *)url completion:(void (^)(UIImage *))completion
+#pragma mark - Fetching image
+
+- (void)getImageWithUrl:(NSURL *)url loadCompletion:(void (^)(UIImage *))completion
 {
     __weak typeof(self) welf = self;
     void (^taskCompletionHandler)(NSData *, NSURLResponse *, NSError *) = ^(NSData *data, NSURLResponse *response, NSError *error) {
@@ -48,31 +59,61 @@ static NSUInteger const DefaultMemoryCacheSize = 10 * 1024 * 1024;
     [[[NSURLSession sharedSession] dataTaskWithURL:url completionHandler:taskCompletionHandler] resume];
 }
 
-- (UIImage *)cachedImageForUrl:(NSURL *)url
+- (void)getImageWithUrl:(NSURL *)url fromCacheCompletion:(void (^)(UIImage *))completion
 {
-    return [self.cache objectForKey:url.absoluteString];
+    completion([self.cache objectForKey:url.absoluteString]);
 }
 
-- (void)getImageWithUrl:(NSURL *)url completion:(void (^)(UIImage *))completion
+- (void)getImageWithUrl:(NSURL *)url fromCacheElseLoadCompletion:(void (^)(UIImage *))completion
 {
-    UIImage *cachedImage = [self cachedImageForUrl:url];
-    if (cachedImage) {
-        completion(cachedImage);
-    }
-    [self downloadImageWithUrl:url completion:^(UIImage *image) {
-        if (image || !cachedImage) {
-            completion(image);
+    [self getImageWithUrl:url fromCacheCompletion:^(UIImage *cachedImage) {
+        if (cachedImage) {
+            completion(cachedImage);
         }
+        else {
+            [self getImageWithUrl:url loadCompletion:^(UIImage *loadedImage) {
+                completion(loadedImage);
+            }];
+        }
+    }];
+}
+
+- (void)getImageWithUrl:(NSURL *)url fromCacheThenLoadCompletion:(void (^)(UIImage *))completion
+{
+    [self getImageWithUrl:url fromCacheCompletion:^(UIImage *cachedImage) {
+        if (cachedImage) {
+            completion(cachedImage);
+        }
+        [self getImageWithUrl:url loadCompletion:^(UIImage *loadedImage) {
+            if (loadedImage || !cachedImage) {
+                completion(loadedImage);
+            }
+        }];
     }];
 }
 
 #pragma mark -
 
+- (NSCache *)sharedCache
+{
+    static NSCache *sharedCache;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        sharedCache = [[NSCache alloc] init];
+        sharedCache.totalCostLimit = DRImageDownloaderDefaultMemoryCacheSize;
+    });
+    return sharedCache;
+}
+
 - (NSCache *)cache
 {
+    if (self.isUsingSharedCache) {
+        _cache = nil;
+        return [self sharedCache];
+    }
     if (!_cache) {
         _cache = [[NSCache alloc] init];
-        _cache.totalCostLimit = DefaultMemoryCacheSize;
+        _cache.totalCostLimit = DRImageDownloaderDefaultMemoryCacheSize;
     }
     return _cache;
 }

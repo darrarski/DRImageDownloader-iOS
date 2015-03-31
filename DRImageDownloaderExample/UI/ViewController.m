@@ -9,6 +9,7 @@
 @interface ViewController ()
 
 @property (weak, nonatomic) IBOutlet UIImageView *imageView;
+@property (nonatomic, strong) DRImageDownloader *imageDownloader;
 
 @end
 
@@ -20,6 +21,14 @@
     [self.view addGestureRecognizer:[[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(didTapOnView:)]];
 }
 
+- (DRImageDownloader *)imageDownloader
+{
+    if (!_imageDownloader) {
+        _imageDownloader = [[DRImageDownloader alloc] init];
+    }
+    return _imageDownloader;
+}
+
 - (void)didTapOnView:(id)sender
 {
     [self reloadImage];
@@ -28,12 +37,12 @@
 - (void)reloadImage
 {
     __weak typeof(self) welf = self;
-    [[DRImageDownloader sharedInstance] getImageWithUrl:[self getRandomImageUrlWithSize:[self getImageSizeForImageView]]
-                                             completion:^(UIImage *image) {
-                                                 dispatch_async(dispatch_get_main_queue(), ^{
-                                                     welf.imageView.image = image;
-                                                 });
-                                             }];
+    [self.imageDownloader getImageWithUrl:[self getRandomImageUrlWithSize:[self getImageSizeForImageView]]
+              fromCacheThenLoadCompletion:^(UIImage *image) {
+                  dispatch_async(dispatch_get_main_queue(), ^{
+                      welf.imageView.image = image;
+                  });
+              }];
 }
 
 - (NSURL *)getRandomImageUrlWithSize:(CGSize)imageSize

@@ -5,13 +5,18 @@
 
 #import <UIKit/UIKit.h>
 
+extern NSUInteger const DRImageDownloaderDefaultMemoryCacheSize;
+
 @interface DRImageDownloader : NSObject
 
+@property (nonatomic, assign, getter=isUsingSharedCache) BOOL useSharedCache;
 @property (nonatomic, assign) NSUInteger memoryCacheSize;
 
 + (instancetype)sharedInstance;
-- (void)downloadImageWithUrl:(NSURL *)url completion:(void (^)(UIImage *))completion;
-- (UIImage *)cachedImageForUrl:(NSURL *)url;
 
-- (void)getImageWithUrl:(NSURL *)url completion:(void (^)(UIImage *))completion;
+- (void)getImageWithUrl:(NSURL *)url loadCompletion:(void (^)(UIImage *))completion;
+- (void)getImageWithUrl:(NSURL *)url fromCacheCompletion:(void (^)(UIImage *))completion;
+- (void)getImageWithUrl:(NSURL *)url fromCacheElseLoadCompletion:(void (^)(UIImage *))completion;
+- (void)getImageWithUrl:(NSURL *)url fromCacheThenLoadCompletion:(void (^)(UIImage *))completion;
+
 @end
