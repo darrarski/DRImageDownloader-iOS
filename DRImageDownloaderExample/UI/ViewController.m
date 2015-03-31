@@ -24,7 +24,7 @@
 - (DRImageDownloader *)imageDownloader
 {
     if (!_imageDownloader) {
-        _imageDownloader = [[DRImageDownloader alloc] init];
+        _imageDownloader = [DRImageDownloader sharedInstance];
     }
     return _imageDownloader;
 }
