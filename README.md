@@ -1,5 +1,7 @@
 # DRImageDownloader (iOS)
 
+Simple URL image downloader for iOS
+
 ## Instalation
 
 You can integrate `DRImageDownloader` with your project using Cocoapods. To do so, you will need to add one of the following lines to your Podfile:
