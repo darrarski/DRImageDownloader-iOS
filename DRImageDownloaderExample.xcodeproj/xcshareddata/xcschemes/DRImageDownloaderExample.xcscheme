@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Scheme
+   version = "1.3">
+   <BuildAction>
+      <BuildActionEntries>
+         <BuildActionEntry
+            buildForRunning = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "31CD46CE1ACB41790007D7D4"
+               BuildableName = "DRImageDownloaderExample.app"
+               BlueprintName = "DRImageDownloaderExample"
+               ReferencedContainer = "container:DRImageDownloaderExample.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+      </BuildActionEntries>
+   </BuildAction>
+   <LaunchAction
+      useCustomWorkingDirectory = "NO"
+      buildConfiguration = "Debug">
+      <BuildableProductRunnable>
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "31CD46CE1ACB41790007D7D4"
+            BuildableName = "DRImageDownloaderExample.app"
+            BlueprintName = "DRImageDownloaderExample"
+            ReferencedContainer = "container:DRImageDownloaderExample.xcodeproj">
+         </BuildableReference>
+      </BuildableProductRunnable>
+   </LaunchAction>
+</Scheme>
