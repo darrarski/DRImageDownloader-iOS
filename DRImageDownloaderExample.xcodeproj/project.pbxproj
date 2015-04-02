@@ -16,6 +16,7 @@
 		31CD46FD1ACB5E3E0007D7D4 /* DRImageDownloaderTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 31CD46FC1ACB5E3E0007D7D4 /* DRImageDownloaderTests.m */; };
 		9DA8A03EDD0D6B4FE1431A96 /* DRImageDownloaderMock.m in Sources */ = {isa = PBXBuildFile; fileRef = 9DA8A24A8E4DDA9D03D9EDC6 /* DRImageDownloaderMock.m */; };
 		9DA8A317C621A19C41FD1D93 /* DRImageDownloader.m in Sources */ = {isa = PBXBuildFile; fileRef = 9DA8A80B90F85F7D9915C137 /* DRImageDownloader.m */; };
+		9DA8A5404960C59196846B59 /* DRImageDownloaderLoadOperation.m in Sources */ = {isa = PBXBuildFile; fileRef = 9DA8A02E6F83E30F45E372E2 /* DRImageDownloaderLoadOperation.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -42,10 +43,12 @@
 		31CD46E81ACB41790007D7D4 /* DRImageDownloaderExampleTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DRImageDownloaderExampleTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		31CD46ED1ACB41790007D7D4 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		31CD46FC1ACB5E3E0007D7D4 /* DRImageDownloaderTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DRImageDownloaderTests.m; sourceTree = "<group>"; };
+		9DA8A02E6F83E30F45E372E2 /* DRImageDownloaderLoadOperation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DRImageDownloaderLoadOperation.m; sourceTree = "<group>"; };
 		9DA8A24A8E4DDA9D03D9EDC6 /* DRImageDownloaderMock.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DRImageDownloaderMock.m; sourceTree = "<group>"; };
 		9DA8A46797F1C06C539CDC10 /* DRImageDownloader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DRImageDownloader.h; sourceTree = "<group>"; };
 		9DA8A5063BCB2C787763E618 /* DRImageDownloaderMock.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DRImageDownloaderMock.h; sourceTree = "<group>"; };
 		9DA8A80B90F85F7D9915C137 /* DRImageDownloader.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DRImageDownloader.m; sourceTree = "<group>"; };
+		9DA8AD55470ED03CA47333F2 /* DRImageDownloaderLoadOperation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DRImageDownloaderLoadOperation.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -156,6 +159,8 @@
 			children = (
 				9DA8A46797F1C06C539CDC10 /* DRImageDownloader.h */,
 				9DA8A80B90F85F7D9915C137 /* DRImageDownloader.m */,
+				9DA8A02E6F83E30F45E372E2 /* DRImageDownloaderLoadOperation.m */,
+				9DA8AD55470ED03CA47333F2 /* DRImageDownloaderLoadOperation.h */,
 			);
 			path = DRImageDownloader;
 			sourceTree = "<group>";
@@ -273,6 +278,7 @@
 				31CD46D81ACB41790007D7D4 /* AppDelegate.m in Sources */,
 				31CD46D51ACB41790007D7D4 /* main.m in Sources */,
 				9DA8A317C621A19C41FD1D93 /* DRImageDownloader.m in Sources */,
+				9DA8A5404960C59196846B59 /* DRImageDownloaderLoadOperation.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
