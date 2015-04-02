@@ -4,12 +4,14 @@
 //
 
 #import "DRImageDownloader.h"
+#import "DRImageDownloaderLoadOperation.h"
 
 NSUInteger const DRImageDownloaderDefaultMemoryCacheSize = 10 * 1024 * 1024;
 
 @interface DRImageDownloader ()
 
 @property (nonatomic, strong) NSCache *cache;
+@property (nonatomic, strong) NSMutableArray *loadOperations;
 
 @end
 
@@ -30,6 +32,7 @@ NSUInteger const DRImageDownloaderDefaultMemoryCacheSize = 10 * 1024 * 1024;
     self = [super init];
     if (self) {
         _useSharedCache = YES;
+        _loadOperations = [NSMutableArray new];
     }
     return self;
 }
@@ -48,15 +51,32 @@ NSUInteger const DRImageDownloaderDefaultMemoryCacheSize = 10 * 1024 * 1024;
 
 - (void)getImageWithUrl:(NSURL *)url loadCompletion:(void (^)(UIImage *))completion
 {
-    __weak typeof(self) welf = self;
-    void (^taskCompletionHandler)(NSData *, NSURLResponse *, NSError *) = ^(NSData *data, NSURLResponse *response, NSError *error) {
-        UIImage *image = data ? [UIImage imageWithData:data] : nil;
-        completion(image);
-        if (image) {
-            [welf.cache setObject:image forKey:url.absoluteString cost:data.length];
+    @synchronized (self) {
+        DRImageDownloaderLoadOperation *loadOperation = [[self.loadOperations filteredArrayUsingPredicate:[NSPredicate predicateWithBlock:^BOOL(DRImageDownloaderLoadOperation *operation, NSDictionary *bindings) {
+            return ([operation.url isEqual:url] && operation.state != DRImageDownloaderLoadOperationCompleted);
+        }]] firstObject];
+
+        if (!loadOperation) {
+            loadOperation = [[DRImageDownloaderLoadOperation alloc] initWithUrl:url];
+            __weak typeof(self) welf = self;
+            __weak typeof(loadOperation) weakLoadOperation = loadOperation;
+            [loadOperation addCompletionBlock:^(UIImage *image, NSData *data, NSURLResponse *response, NSError *error) {
+                if (image && data) {
+                    [welf.cache setObject:image forKey:url.absoluteString cost:data.length];
+                }
+                [welf.loadOperations removeObject:weakLoadOperation];
+            }];
+            [self.loadOperations addObject:loadOperation];
         }
-    };
-    [[[NSURLSession sharedSession] dataTaskWithURL:url completionHandler:taskCompletionHandler] resume];
+
+        [loadOperation addCompletionBlock:^(UIImage *image, NSData *data, NSURLResponse *response, NSError *error) {
+            completion(image);
+        }];
+
+        if (loadOperation.state == DRImageDownloaderLoadOperationStandby) {
+            [loadOperation start];
+        }
+    }
 }
 
 - (void)getImageWithUrl:(NSURL *)url fromCacheCompletion:(void (^)(UIImage *))completion
