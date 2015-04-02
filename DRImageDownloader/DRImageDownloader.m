@@ -53,12 +53,10 @@ NSUInteger const DRImageDownloaderDefaultMemoryCacheSize = 10 * 1024 * 1024;
 {
     @synchronized (self) {
         DRImageDownloaderLoadOperation *loadOperation = [[self.loadOperations filteredArrayUsingPredicate:[NSPredicate predicateWithBlock:^BOOL(DRImageDownloaderLoadOperation *operation, NSDictionary *bindings) {
-            return [operation.url isEqual:url];
+            return ([operation.url isEqual:url] && operation.state != DRImageDownloaderLoadOperationCompleted);
         }]] firstObject];
 
-        BOOL operationAlreadyExists = (loadOperation != nil);
-
-        if (!operationAlreadyExists) {
+        if (!loadOperation) {
             loadOperation = [[DRImageDownloaderLoadOperation alloc] initWithUrl:url];
             __weak typeof(self) welf = self;
             __weak typeof(loadOperation) weakLoadOperation = loadOperation;
@@ -75,7 +73,7 @@ NSUInteger const DRImageDownloaderDefaultMemoryCacheSize = 10 * 1024 * 1024;
             completion(image);
         }];
 
-        if (!operationAlreadyExists) {
+        if (loadOperation.state == DRImageDownloaderLoadOperationStandby) {
             [loadOperation start];
         }
     }
