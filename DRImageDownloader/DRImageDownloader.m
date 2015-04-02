@@ -4,14 +4,12 @@
 //
 
 #import "DRImageDownloader.h"
-#import "DRImageDownloaderCompletionHandler.h"
 
 NSUInteger const DRImageDownloaderDefaultMemoryCacheSize = 10 * 1024 * 1024;
 
 @interface DRImageDownloader ()
 
 @property (nonatomic, strong) NSCache *cache;
-@property (nonatomic, strong) NSMutableArray *completionHandlers;
 
 @end
 
@@ -50,32 +48,6 @@ NSUInteger const DRImageDownloaderDefaultMemoryCacheSize = 10 * 1024 * 1024;
 
 - (void)getImageWithUrl:(NSURL *)url loadCompletion:(void (^)(UIImage *))completion
 {
-    DRImageDownloaderCompletionHandler *handler = [DRImageDownloaderCompletionHandler handlerForUrl:url withBlock:completion];
-    [self.completionHandlers addObject:handler];
-    __block BOOL downloadInProgress = NO;
-    [self.completionHandlers enumerateObjectsUsingBlock:^(DRImageDownloaderCompletionHandler *obj, NSUInteger idx, BOOL *stop) {
-        if (![obj isEqual:handler] && [obj.url isEqual:url]) {
-            downloadInProgress = YES;
-            *stop = YES;
-        }
-    }];
-    if (!downloadInProgress) {
-        __weak typeof(self) welf = self;
-        void (^taskCompletionHandler)(NSData *, NSURLResponse *, NSError *) = ^(NSData *data, NSURLResponse *response, NSError *error) {
-            UIImage *image = data ? [UIImage imageWithData:data] : nil;
-            NSArray *handlers = [welf.completionHandlers filteredArrayUsingPredicate:[NSPredicate predicateWithBlock:^BOOL(DRImageDownloaderCompletionHandler *obj, NSDictionary *bindings) {
-                return [obj.url isEqual:url];
-            }]];
-            [handlers enumerateObjectsUsingBlock:^(DRImageDownloaderCompletionHandler *obj, NSUInteger idx, BOOL *stop) {
-                [obj handle:image];
-                [welf.completionHandlers removeObject:obj];
-            }];
-            if (image) {
-                [welf.cache setObject:image forKey:url.absoluteString cost:data.length];
-            }
-        };
-        [[[NSURLSession sharedSession] dataTaskWithURL:url completionHandler:taskCompletionHandler] resume];
-    }
 }
 
 - (void)getImageWithUrl:(NSURL *)url fromCacheCompletion:(void (^)(UIImage *))completion
@@ -135,14 +107,6 @@ NSUInteger const DRImageDownloaderDefaultMemoryCacheSize = 10 * 1024 * 1024;
         _cache.totalCostLimit = DRImageDownloaderDefaultMemoryCacheSize;
     }
     return _cache;
-}
-
-- (NSMutableArray *)completionHandlers
-{
-    if (!_completionHandlers) {
-        _completionHandlers = [NSMutableArray new];
-    }
-    return _completionHandlers;
 }
 
 @end
