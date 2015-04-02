@@ -9,6 +9,8 @@
 
 @property (nonatomic, strong) NSURL *url;
 @property (nonatomic, strong) NSMutableArray *completionHandlers;
+@property (nonatomic, assign) DRImageDownloaderLoadOperationState state;
+@property (nonatomic, strong) NSURLSessionDataTask *task;
 
 @end
 
@@ -28,6 +30,7 @@
     if (self) {
         _url = url;
         _completionHandlers = [NSMutableArray new];
+        _state = DRImageDownloaderLoadOperationStandby;
     }
     return self;
 }
@@ -39,13 +42,26 @@
 
 - (void)start
 {
-    void (^taskCompletionHandler)(NSData *, NSURLResponse *, NSError *) = ^(NSData *data, NSURLResponse *response, NSError *error) {
-        UIImage *image = data ? [UIImage imageWithData:data] : nil;
-        [self.completionHandlers enumerateObjectsUsingBlock:^(CompletionHandler *completionHandler, NSUInteger idx, BOOL *stop) {
-            completionHandler.block(image, data, response, error);
-        }];
-    };
-    [[[NSURLSession sharedSession] dataTaskWithURL:self.url completionHandler:taskCompletionHandler] resume];
+    self.state = DRImageDownloaderLoadOperationRunning;
+    [self.task resume];
+}
+
+#pragma mark -
+
+- (NSURLSessionDataTask *)task
+{
+    if (!_task) {
+        __weak typeof(self) welf = self;
+        void (^taskCompletionHandler)(NSData *, NSURLResponse *, NSError *) = ^(NSData *data, NSURLResponse *response, NSError *error) {
+            welf.state = DRImageDownloaderLoadOperationCompleted;
+            UIImage *image = data ? [UIImage imageWithData:data] : nil;
+            [welf.completionHandlers enumerateObjectsUsingBlock:^(CompletionHandler *completionHandler, NSUInteger idx, BOOL *stop) {
+                completionHandler.block(image, data, response, error);
+            }];
+        };
+        _task = [[NSURLSession sharedSession] dataTaskWithURL:self.url completionHandler:taskCompletionHandler];
+    }
+    return _task;
 }
 
 @end
