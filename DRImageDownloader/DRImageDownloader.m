@@ -61,11 +61,12 @@ NSUInteger const DRImageDownloaderDefaultMemoryCacheSize = 10 * 1024 * 1024;
         if (!operationAlreadyExists) {
             loadOperation = [[DRImageDownloaderLoadOperation alloc] initWithUrl:url];
             __weak typeof(self) welf = self;
+            __weak typeof(loadOperation) weakLoadOperation = loadOperation;
             [loadOperation addCompletionBlock:^(UIImage *image, NSData *data, NSURLResponse *response, NSError *error) {
                 if (image && data) {
                     [welf.cache setObject:image forKey:url.absoluteString cost:data.length];
                 }
-                [welf.loadOperations removeObject:loadOperation];
+                [welf.loadOperations removeObject:weakLoadOperation];
             }];
             [self.loadOperations addObject:loadOperation];
         }
