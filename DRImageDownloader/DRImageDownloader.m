@@ -4,12 +4,14 @@
 //
 
 #import "DRImageDownloader.h"
+#import "DRImageDownloaderLoadOperation.h"
 
 NSUInteger const DRImageDownloaderDefaultMemoryCacheSize = 10 * 1024 * 1024;
 
 @interface DRImageDownloader ()
 
 @property (nonatomic, strong) NSCache *cache;
+@property (nonatomic, strong) NSMutableArray *loadOperations;
 
 @end
 
@@ -30,6 +32,7 @@ NSUInteger const DRImageDownloaderDefaultMemoryCacheSize = 10 * 1024 * 1024;
     self = [super init];
     if (self) {
         _useSharedCache = YES;
+        _loadOperations = [NSMutableArray new];
     }
     return self;
 }
@@ -48,6 +51,33 @@ NSUInteger const DRImageDownloaderDefaultMemoryCacheSize = 10 * 1024 * 1024;
 
 - (void)getImageWithUrl:(NSURL *)url loadCompletion:(void (^)(UIImage *))completion
 {
+    @synchronized (self) {
+        DRImageDownloaderLoadOperation *loadOperation = [[self.loadOperations filteredArrayUsingPredicate:[NSPredicate predicateWithBlock:^BOOL(DRImageDownloaderLoadOperation *operation, NSDictionary *bindings) {
+            return [operation.url isEqual:url];
+        }]] firstObject];
+
+        BOOL operationAlreadyExists = (loadOperation != nil);
+
+        if (!operationAlreadyExists) {
+            loadOperation = [[DRImageDownloaderLoadOperation alloc] initWithUrl:url];
+            __weak typeof(self) welf = self;
+            [loadOperation addCompletionBlock:^(UIImage *image, NSData *data, NSURLResponse *response, NSError *error) {
+                if (image && data) {
+                    [welf.cache setObject:image forKey:url.absoluteString cost:data.length];
+                }
+                [welf.loadOperations removeObject:loadOperation];
+            }];
+            [self.loadOperations addObject:loadOperation];
+        }
+
+        [loadOperation addCompletionBlock:^(UIImage *image, NSData *data, NSURLResponse *response, NSError *error) {
+            completion(image);
+        }];
+
+        if (!operationAlreadyExists) {
+            [loadOperation start];
+        }
+    }
 }
 
 - (void)getImageWithUrl:(NSURL *)url fromCacheCompletion:(void (^)(UIImage *))completion
