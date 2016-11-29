@@ -52,9 +52,11 @@ NSUInteger const DRImageDownloaderDefaultMemoryCacheSize = 10 * 1024 * 1024;
 - (void)getImageWithUrl:(NSURL *)url loadCompletion:(void (^)(UIImage *))completion
 {
     @synchronized (self) {
-        DRImageDownloaderLoadOperation *loadOperation = [[self.loadOperations filteredArrayUsingPredicate:[NSPredicate predicateWithBlock:^BOOL(DRImageDownloaderLoadOperation *operation, NSDictionary *bindings) {
+        NSArray *loadOperations = self.loadOperations.copy;
+        NSPredicate *predicate = [NSPredicate predicateWithBlock:^BOOL(DRImageDownloaderLoadOperation *operation, NSDictionary *bindings) {
             return ([operation.url isEqual:url] && operation.state != DRImageDownloaderLoadOperationCompleted);
-        }]] firstObject];
+        }];
+        DRImageDownloaderLoadOperation *loadOperation = [[loadOperations filteredArrayUsingPredicate:predicate] firstObject];
 
         if (!loadOperation) {
             loadOperation = [[DRImageDownloaderLoadOperation alloc] initWithUrl:url];
